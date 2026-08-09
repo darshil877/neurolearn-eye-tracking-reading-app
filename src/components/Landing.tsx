@@ -106,6 +106,106 @@ export function Landing() {
           </div>
         </div>
 
+        {/* ---- About Dyslexia section ---- */}
+        <section className="mt-24" id="about-dyslexia">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-100">
+              <BookOpen className="w-3.5 h-3.5" /> Learn the basics
+            </div>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">
+              What is dyslexia, really?
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+              A friendly, plain-language explainer for parents and teachers. Understanding the
+              signs early is the first step toward getting a child the help they deserve.
+            </p>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InfoCard
+              icon="💡"
+              title="What it is"
+              body={
+                <>
+                  <strong>Dyslexia</strong> is a common learning difference that mainly affects reading,
+                  spelling, and word recognition, despite normal intelligence and good teaching. It is
+                  <strong> neurobiological</strong> — the brain simply connects sounds to letters a bit
+                  differently. It is <em>not</em> a sign of low intelligence or laziness. With the right
+                  support, people with dyslexia learn and read successfully.
+                </>
+              }
+            />
+            <InfoCard
+              icon="🧬"
+              title="Root causes"
+              body={
+                <>
+                  Researchers believe dyslexia is largely <strong>genetic</strong> and runs in families.
+                  Brain-imaging studies show differences in the areas that handle phonological processing
+                  (matching speech sounds to letters). It is not caused by bad eyesight, not hearing
+                  properly, or a lack of effort. Early-life factors and environment can influence how it
+                  shows up, but the underlying wiring is present from birth.
+                </>
+              }
+            />
+            <InfoCard
+              icon="🔍"
+              title="Common signs"
+              body={
+                <>
+                  Signs can appear as early as preschool: delayed speech, trouble learning letters and
+                  their sounds, difficulty rhyming, or mixing up similar words. In school, a child may
+                  read slowly, guess at words, avoid reading aloud, reverse letters long after their
+                  peers stop, or struggle with spelling. Reading is often tiring and frustrating even
+                  when the child is clearly bright.
+                </>
+              }
+            />
+            <InfoCard
+              icon="🧪"
+              title="How it's detected"
+              body={
+                <>
+                  Detection is a <strong>multi-step process</strong>. It starts with observation by
+                  parents and teachers, then targeted screening (like the reading-pattern tracking in
+                  this app), and finally a <strong>formal evaluation</strong> by a licensed psychologist
+                  or educational specialist. A formal diagnosis uses standardized tests of reading,
+                  spelling, phonological awareness, and cognitive ability. Screening tools flag{" "}
+                  <em>who may benefit</em> from that full evaluation — they do not diagnose on their own.
+                </>
+              }
+            />
+          </div>
+
+          <div className="mt-8 rounded-3xl bg-white p-6 shadow ring-1 ring-slate-200">
+            <h3 className="text-lg font-bold text-slate-900">How NeuroLearn fits in</h3>
+            <p className="mt-2 text-slate-600 leading-relaxed">
+              NeuroLearn is a <strong>screening-style companion</strong>, not a diagnostic tool. During a
+              reading session it watches for patterns that commonly accompany early reading difficulty —
+              frequent looking back at already-read words (regressions), long hesitant pauses on words,
+              and slower-than-expected reading pace. When multiple patterns appear together, it flags the
+              session for grown-ups to review and suggests a professional screening. It can also adapt the
+              text in real time (bigger letters, friendlier font, warmer background) to make reading feel
+              easier. Everything runs on-device, nothing is recorded or uploaded, and it never claims to
+              provide a medical diagnosis.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+              <span className="inline-flex items-center gap-2"><span className="text-base">✅</span> Flags patterns, doesn't label</span>
+              <span className="inline-flex items-center gap-2"><span className="text-base">🔒</span> 100% on-device, private</span>
+              <span className="inline-flex items-center gap-2"><span className="text-base">👨‍👩‍👧</span> Built for parents &amp; teachers</span>
+              <span className="inline-flex items-center gap-2"><span className="text-base">🩺</span> Always follow up with a specialist</span>
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-3xl bg-indigo-50 p-6 text-center ring-1 ring-indigo-100">
+            <p className="text-slate-700 text-sm leading-relaxed">
+              <strong>Important:</strong> This page is educational information only and is not a medical
+              diagnosis. If you are concerned about a child's reading, please consult a qualified
+              professional — early support makes a real difference.
+            </p>
+          </div>
+        </section>
+
         <footer className="mt-16 text-center text-xs text-slate-500">
           Built at Prasunethon • All processing happens on your device • No video leaves your browser
         </footer>
@@ -180,6 +280,20 @@ function Feature({ icon, title, copy }: { icon: React.ReactNode; title: string; 
         <div className="font-semibold text-slate-900">{title}</div>
         <div className="text-slate-500 text-xs leading-snug">{copy}</div>
       </div>
+    </div>
+  );
+}
+
+function InfoCard({ icon, title, body }: { icon: string; title: string; body: React.ReactNode }) {
+  return (
+    <div className="rounded-3xl bg-white p-6 shadow ring-1 ring-slate-200">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+          {icon}
+        </span>
+        <h3 className="text-base font-bold text-slate-900">{title}</h3>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-slate-600">{body}</p>
     </div>
   );
 }

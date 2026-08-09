@@ -10,5 +10,10 @@
 - [x] StoryReader.tsx: integrate assessReading for richer summary + risk display
 - [x] store.ts + gaze/tracker.ts: fix fixation double-counting for accurate stats
 
-Build verified with `npm run build`.
+## About Dyslexia section on home page
+- [x] Landing.tsx: add comprehensive "What is dyslexia?" section with InfoCard components
+  - Defines what dyslexia is, root causes, common signs, and how it's detected
+  - Explains how NeuroLearn fits in as a screening companion (not a diagnostic)
+  - Includes a clear disclaimer that it is educational info, not a medical diagnosis
 
+Build verified with `npm run build`.
