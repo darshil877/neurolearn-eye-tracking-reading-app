@@ -12,4 +12,5 @@ Camera/tracker fixes:
 - [x] Add GPU → CPU delegate fallback for FaceLandmarker
 - [x] Collapse duplicate frameloop (onFrame/onFrame2, processSample/processAndStore)
 - [x] Graceful demo-tracker fallback when live camera fails
+- [x] Add multi-CDN wasm + model mirrors and in-memory model loading
 - [x] Verify build compiles

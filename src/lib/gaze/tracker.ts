@@ -49,24 +49,70 @@ export interface GazeTracker {
 
 // ---------------- MediaPipe implementation ----------------
 
-const FACE_MESH_MODEL =
-  "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
-
 const MEDIAPIPE_VERSION = "1.0.1";
-const MEDIAPIPE_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
 
-async function loadFaceLandmarker(): Promise<any> {
+// Multiple mirrors so that a single unreachable CDN doesn't break the demo.
+const WASM_CDNS = [
+  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`,
+  `https://unpkg.com/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`,
+  `https://fastly.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`,
+];
+
+const MODEL_CDNS = [
+  "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+  "https://cdn.jsdelivr.net/gh/google-ai-edge/mediapipe-models@main/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+];
+
+async function fetchFirst(urls: string[]): Promise<Response> {
+  let lastErr: unknown;
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "force-cache" });
+      if (res.ok) return res;
+      lastErr = new Error(`HTTP ${res.status} for ${url}`);
+    } catch (e) {
+      lastErr = e;
+      console.warn("Fetch failed, trying next mirror:", url, e);
+    }
+  }
+  throw lastErr ?? new Error("All model sources failed");
+}
+
+async function firstResolved<T>(factories: Array<() => Promise<T>>): Promise<T> {
+  let lastErr: unknown;
+  for (const f of factories) {
+    try {
+      return await f();
+    } catch (e) {
+      lastErr = e;
+      console.warn("Attempt failed, trying next:", e);
+    }
+  }
+  throw lastErr;
+}
+
+// Loads MediaPipe client library + WASM fileset + the FaceLandmarker model.
+// Uses several network mirrors and falls back GPU -> CPU delegate.
+export async function loadFaceLandmarker(): Promise<any> {
   const vision = await import("@mediapipe/tasks-vision");
   const { FaceLandmarker, FilesetResolver } = vision as any;
-  const filesetResolver = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM);
+
+  // Resolve a WASM fileset from any available CDN.
+  const fileset = await firstResolved(WASM_CDNS.map((url) => () => FilesetResolver.forVisionTasks(url)));
+
+  // Download the model into memory (more reliable than a path for many hosts),
+  // falling back across mirrors.
+  const modelRes = await fetchFirst(MODEL_CDNS);
+  const modelAssetBuffer = new Uint8Array(await modelRes.arrayBuffer());
+
   // Try GPU delegate first, then fall back to WASM/CPU which is more
   // compatible across devices and webviews.
   const delegates = ["GPU", "CPU"] as const;
   let lastErr: unknown;
   for (const delegate of delegates) {
     try {
-      return await FaceLandmarker.createFromOptions(filesetResolver, {
-        baseOptions: { modelAssetPath: FACE_MESH_MODEL, delegate },
+      return await FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetBuffer, delegate },
         runningMode: "VIDEO",
         numFaces: 1,
         outputFaceBlendshapes: false,
