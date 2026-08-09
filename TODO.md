@@ -16,4 +16,7 @@
   - Explains how NeuroLearn fits in as a screening companion (not a diagnostic)
   - Includes a clear disclaimer that it is educational info, not a medical diagnosis
 
+## Page ordering (per feedback)
+- [x] Landing.tsx: dyslexia educational section now appears FIRST (after nav), then the teacher/parent login + hero section below, so visitors understand dyslexia and the app's purpose before signing in to test.
+
 Build verified with `npm run build`.

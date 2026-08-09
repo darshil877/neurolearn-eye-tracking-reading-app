@@ -45,69 +45,8 @@ export function Landing() {
           </div>
         </nav>
 
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-100">
-              <Workflow className="w-3.5 h-3.5" /> Prasunethon prototype • Not a medical device
-            </div>
-            <h1 className="mt-4 text-5xl sm:text-6xl font-extrabold leading-tight text-slate-900">
-              Reading help that{" "}
-              <span className="bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-rose-500 bg-clip-text text-transparent">
-                watches quietly
-              </span>{" "}
-              and adapts in real time.
-            </h1>
-            <p className="mt-5 text-lg text-slate-700 leading-relaxed">
-              NeuroLearn is a gamified English / Hindi / Tamil / Marathi reading app for primary-schoolers.
-              When it notices hesitation (long pauses, looking back at words), it gently makes the
-              text easier to read, and lets grown-ups know if a child might benefit from a reading
-              specialist — without ever diagnosing, recording, or uploading anything.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                onClick={() => setShowSignIn(true)}
-                className="rounded-full bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
-              >
-                I'm a teacher / parent →
-              </button>
-              <button
-                onClick={async () => {
-                  await signIn("demo@neurolearn.app", "Demo Teacher");
-                }}
-                className="rounded-full bg-white px-6 py-3 text-base font-semibold text-slate-800 shadow ring-1 ring-slate-200 hover:bg-slate-50"
-              >
-                Try with a demo account
-              </button>
-            </div>
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              <Feature icon={<Eye className="w-4 h-4" />} title="On-device eye tracking" copy="MediaPipe FaceMesh runs in your browser." />
-              <Feature icon={<ShieldCheck className="w-4 h-4" />} title="Consent first" copy="The camera only turns on after an adult says yes." />
-              <Feature icon={<BookOpen className="w-4 h-4" />} title="4 languages" copy="English, हिन्दी, தமிழ், मराठी — phonics included." />
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-slate-200 transform rotate-1">
-              <div className="rounded-2xl bg-gradient-to-br from-amber-100 to-rose-100 p-5 font-opendyslexic text-xl leading-loose text-slate-800 warm-tint tint-3">
-                <div className="mb-2 text-sm font-sans font-bold text-rose-700 font-opendyslexic">चिंकी की गेंद</div>
-                चिंकी एक छोटी खरगोश है। उसकी एक लाल <span className="reading-word is-current">गेंद</span> है।
-                गेंद पेड़ के नीचे लुढ़क गई। चिंकी दौड़ी और गेंद उठा लाई। वह बहुत खुश हुई।
-              </div>
-              <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                <div className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-semibold text-amber-800">
-                  <Sparkles className="w-3 h-3" /> Adaptations on: easier font, warm tint, bigger letters
-                </div>
-              </div>
-            </div>
-            <div className="absolute -bottom-4 -right-4 rounded-2xl bg-slate-900 px-4 py-3 text-xs text-white shadow-xl -rotate-2 max-w-[220px]">
-              <div className="font-semibold">⚠️ Heuristic only</div>
-              <div className="opacity-80">Flags patterns, doesn't diagnose. Always see a specialist for real concerns.</div>
-            </div>
-          </div>
-        </div>
-
-        {/* ---- About Dyslexia section ---- */}
-        <section className="mt-24" id="about-dyslexia">
+        {/* ---- About Dyslexia section (shown first so visitors learn what this is) ---- */}
+        <section className="mt-12" id="about-dyslexia">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-100">
               <BookOpen className="w-3.5 h-3.5" /> Learn the basics
@@ -205,6 +144,68 @@ export function Landing() {
             </p>
           </div>
         </section>
+
+        {/* ---- Login / hero section (below the explainer) ---- */}
+        <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-100">
+              <Workflow className="w-3.5 h-3.5" /> Prasunethon prototype • Not a medical device
+            </div>
+            <h1 className="mt-4 text-5xl sm:text-6xl font-extrabold leading-tight text-slate-900">
+              Reading help that{" "}
+              <span className="bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-rose-500 bg-clip-text text-transparent">
+                watches quietly
+              </span>{" "}
+              and adapts in real time.
+            </h1>
+            <p className="mt-5 text-lg text-slate-700 leading-relaxed">
+              NeuroLearn is a gamified English / Hindi / Tamil / Marathi reading app for primary-schoolers.
+              When it notices hesitation (long pauses, looking back at words), it gently makes the
+              text easier to read, and lets grown-ups know if a child might benefit from a reading
+              specialist — without ever diagnosing, recording, or uploading anything.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={() => setShowSignIn(true)}
+                className="rounded-full bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700"
+              >
+                I'm a teacher / parent →
+              </button>
+              <button
+                onClick={async () => {
+                  await signIn("demo@neurolearn.app", "Demo Teacher");
+                }}
+                className="rounded-full bg-white px-6 py-3 text-base font-semibold text-slate-800 shadow ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                Try with a demo account
+              </button>
+            </div>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <Feature icon={<Eye className="w-4 h-4" />} title="On-device eye tracking" copy="MediaPipe FaceMesh runs in your browser." />
+              <Feature icon={<ShieldCheck className="w-4 h-4" />} title="Consent first" copy="The camera only turns on after an adult says yes." />
+              <Feature icon={<BookOpen className="w-4 h-4" />} title="4 languages" copy="English, हिन्दी, தமிழ், मराठी — phonics included." />
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-slate-200 transform rotate-1">
+              <div className="rounded-2xl bg-gradient-to-br from-amber-100 to-rose-100 p-5 font-opendyslexic text-xl leading-loose text-slate-800 warm-tint tint-3">
+                <div className="mb-2 text-sm font-sans font-bold text-rose-700 font-opendyslexic">चिंकी की गेंद</div>
+                चिंकी एक छोटी खरगोश है। उसकी एक लाल <span className="reading-word is-current">गेंद</span> है।
+                गेंद पेड़ के नीचे लुढ़क गई। चिंकी दौड़ी और गेंद उठा लाई। वह बहुत खुश हुई।
+              </div>
+              <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
+                <div className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-semibold text-amber-800">
+                  <Sparkles className="w-3 h-3" /> Adaptations on: easier font, warm tint, bigger letters
+                </div>
+              </div>
+            </div>
+            <div className="absolute -bottom-4 -right-4 rounded-2xl bg-slate-900 px-4 py-3 text-xs text-white shadow-xl -rotate-2 max-w-[220px]">
+              <div className="font-semibold">⚠️ Heuristic only</div>
+              <div className="opacity-80">Flags patterns, doesn't diagnose. Always see a specialist for real concerns.</div>
+            </div>
+          </div>
+        </div>
 
         <footer className="mt-16 text-center text-xs text-slate-500">
           Built at Prasunethon • All processing happens on your device • No video leaves your browser
