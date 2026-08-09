@@ -22,6 +22,7 @@ interface AppState {
     fixationTotal: number;
     fixationCount: number;
     struggledWords: Record<string, number>;
+    _fixationKeys: string[];
   };
   init: () => Promise<void>;
   signIn: (email: string, name: string) => Promise<void>;
@@ -50,6 +51,7 @@ export const useStore = create<AppState>((set, get) => ({
     fixationTotal: 0,
     fixationCount: 0,
     struggledWords: {},
+    _fixationKeys: [],
   },
   async init() {
     const g = db.auth.current();
@@ -89,13 +91,15 @@ export const useStore = create<AppState>((set, get) => ({
     }
     if (e.type === "long_fixation") {
       ls.longFixations++;
-      ls.fixationTotal += e.durationMs;
-      ls.fixationCount += 1;
-      ls.avgFixation = ls.fixationTotal / Math.max(1, ls.fixationCount);
       ls.struggledWords[e.word] = (ls.struggledWords[e.word] || 0) + 1;
       set({ hesitancyEvents: get().hesitancyEvents + 1 });
     }
     if (e.type === "fixation") {
+      // long_fixation always also arrives as a plain fixation event
+      // (with the same duration), so only count each distinct fixation once.
+      const key = `${e.word}:${Math.round(e.durationMs)}`;
+      if (ls._fixationKeys.includes(key)) return;
+      ls._fixationKeys = [...ls._fixationKeys, key];
       ls.fixationTotal += e.durationMs;
       ls.fixationCount += 1;
       ls.avgFixation = ls.fixationTotal / Math.max(1, ls.fixationCount);
@@ -112,6 +116,7 @@ export const useStore = create<AppState>((set, get) => ({
         fixationTotal: 0,
         fixationCount: 0,
         struggledWords: {},
+        _fixationKeys: [],
       },
       hesitancyEvents: 0,
       adaptationLevel: 0,

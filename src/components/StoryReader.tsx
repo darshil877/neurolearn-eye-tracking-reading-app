@@ -7,11 +7,13 @@ import type { Story } from "@/lib/db";
 import { useStore } from "@/lib/store";
 import { GAZE_CONFIG } from "@/lib/config";
 import { generatePhonics, type PhonicsExercise } from "@/lib/phonics";
-import { ArrowLeft, Play, Pause, Sparkles, X, Info, Volume2 } from "lucide-react";
+import { assessReading, type ReadingAssessment } from "@/lib/assessment";
+import { cn } from "@/utils/cn";
+import { ArrowLeft, Play, Pause, Sparkles, X, Info, Volume2, ShieldAlert, ShieldCheck } from "lucide-react";
 
 interface Props {
   story: Story;
-  onDone: (args: { flagged: boolean; struggledWords: string[]; regressionRate: number; avgFixation: number }) => void;
+  onDone: (args: { flagged: boolean; risk: string; struggledWords: string[]; regressionRate: number; avgFixation: number }) => void;
 }
 
 type Phase = "intro" | "reading" | "loading-phonics" | "phonics" | "summary";
@@ -30,6 +32,7 @@ export function StoryReader({ story, onDone }: Props) {
   const [gaze, setGaze] = useState<{ x: number; y: number } | null>(null);
   const [phonics, setPhonics] = useState<PhonicsExercise | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [assessment, setAssessment] = useState<ReadingAssessment | null>(null);
 
   const wordBoxesRef = useRef<WordBox[]>([]);
   const startRef = useRef<number>(0);
@@ -92,13 +95,13 @@ export function StoryReader({ story, onDone }: Props) {
 
   async function handleFinish() {
     setRunning(false);
-    const regRate =
-      liveStats.saccades >= GAZE_CONFIG.MIN_SACCADES_FOR_FLAG
-        ? liveStats.regressions / Math.max(1, liveStats.saccades)
-        : 0;
-    const flagged =
-      regRate > GAZE_CONFIG.REGRESSION_RATE_THRESHOLD &&
-      liveStats.avgFixation > GAZE_CONFIG.LONG_FIXATION_MS;
+    const assessmentResult = assessReading({
+      saccades: liveStats.saccades,
+      regressions: liveStats.regressions,
+      avgFixation: liveStats.avgFixation,
+      longFixations: liveStats.longFixations,
+    });
+    setAssessment(assessmentResult);
     const struggled = Object.entries(liveStats.struggledWords)
       .filter(([, c]) => c >= 2)
       .map(([w]) => w);
@@ -107,10 +110,11 @@ export function StoryReader({ story, onDone }: Props) {
     setPhonics(ex);
     setPhase("phonics");
     onDone({
-      flagged,
+      flagged: assessmentResult.flagged,
+      risk: assessmentResult.risk,
       struggledWords: struggled,
-      regressionRate: regRate,
-      avgFixation: liveStats.avgFixation || 0,
+      regressionRate: assessmentResult.regressionRate,
+      avgFixation: assessmentResult.avgFixationMs,
     });
   }
 
@@ -181,26 +185,76 @@ export function StoryReader({ story, onDone }: Props) {
   }
 
   if (phase === "summary") {
-    const flagged =
-      liveStats.saccades >= GAZE_CONFIG.MIN_SACCADES_FOR_FLAG &&
-      liveStats.regressions / Math.max(1, liveStats.saccades) > GAZE_CONFIG.REGRESSION_RATE_THRESHOLD &&
-      liveStats.avgFixation > GAZE_CONFIG.LONG_FIXATION_MS;
+    const a = assessment;
+    const flagged = a?.flagged ?? false;
+    const risk: "high" | "moderate" | "low" = a?.risk ?? "low";
+    const isRaised = risk === "high" || risk === "moderate";
     return (
       <div className="max-w-2xl mx-auto rounded-3xl bg-white p-8 text-center shadow-xl ring-1 ring-slate-200">
-        <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-          <Sparkles className="w-8 h-8" />
+        <div
+          className={cn(
+            "mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full",
+            flagged ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+          )}
+        >
+          {flagged ? <ShieldAlert className="w-8 h-8" /> : <ShieldCheck className="w-8 h-8" />}
         </div>
-        <h2 className="mt-4 text-2xl font-extrabold text-slate-900">Great reading!</h2>
+        <h2 className="mt-4 text-2xl font-extrabold text-slate-900">
+          {flagged ? "Session complete" : "Great reading!"}
+        </h2>
         <p className="mt-2 text-slate-600">
-          {flagged
-            ? "We noticed a few words took a bit more time. Your grown-up will get a friendly note about it."
-            : "You read smoothly today — nice job!"}
+          {a
+            ? a.shortVerdict
+            : flagged
+              ? "We noticed a few words took a bit more time. Your grown-up will get a friendly note about it."
+              : "You read smoothly today — nice job!"}
         </p>
+
+        {a && a.hasEnoughData && (
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-left ring-1 ring-slate-100">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Reading risk (this session)
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                  risk === "low" && "bg-emerald-100 text-emerald-800",
+                  risk === "moderate" && "bg-amber-100 text-amber-800",
+                  risk === "high" && "bg-rose-100 text-rose-800"
+                )}
+              >
+                {risk === "low" ? "Low" : risk === "moderate" ? "Moderate" : "High"}
+              </span>
+            </div>
+            {a.signals.length > 0 && (
+              <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+                {a.signals.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 grid grid-cols-3 gap-2 text-left">
           <MiniStat label="Regressions" value={`${Math.round(regRate)}%`} />
-          <MiniStat label="Avg fixation" value={`${Math.round(liveStats.avgFixation)}ms`} />
-          <MiniStat label="Long fixations" value={liveStats.longFixations.toString()} />
+          <MiniStat label="Avg fixation" value={`${Math.round(a?.avgFixationMs ?? liveStats.avgFixation)}ms`} />
+          <MiniStat label="Long fixations" value={(a?.longFixationCount ?? liveStats.longFixations).toString()} />
         </div>
+
+        {isRaised && (
+          <div className="mt-5 rounded-2xl bg-amber-50 p-3 text-[12.5px] leading-snug text-amber-900 ring-1 ring-amber-200 text-left">
+            <strong>Heads-up for grown-ups:</strong> several reading patterns stood out today. This is{" "}
+            <em>not</em> a diagnosis — but {" "}
+            {student?.name?.split(" ")[0] ?? "this reader"} may benefit from a professional reading-specialist
+            screening. The dashboard will keep tracking this over time.
+          </div>
+        )}
+
         <button
           onClick={() => navigate({ name: "dashboard" })}
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 font-semibold text-white shadow hover:bg-indigo-700"

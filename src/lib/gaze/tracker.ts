@@ -369,29 +369,36 @@ export function createLiveTracker(): GazeTracker {
 // regressions so the full adaptive loop can be demoed without a camera,
 // with unreliable internet, or under bad lighting on stage.
 
+// A deliberate demo that exhibits the *patterns* of a struggling reader
+// (frequent regressions, long fixations, hesitations) so the assessor,
+// adaptive loop, and flagging are all demonstrably exercised. This is the
+// "before intervention" demo; see README for the caveat that it is NOT a
+// diagnosis.
 const DEMO_SCRIPT = [
-  // word index, dwell_ms, whether to "stumble" (trigger long fixation + regression)
-  { word: 0, dwell: 260 },
-  { word: 1, dwell: 240 },
-  { word: 2, dwell: 320 },
-  { word: 3, dwell: 280 },
-  { word: 4, dwell: 250 },
-  { word: 5, dwell: 270 },
-  { word: 6, dwell: 420, stumble: true },
-  { word: 7, dwell: 300 },
-  // regression back to word 6, then 5, then forward again
-  { word: 6, dwell: 620, stumble: true },
-  { word: 5, dwell: 380, stumble: true },
-  { word: 7, dwell: 300 },
-  { word: 8, dwell: 340 },
-  { word: 9, dwell: 500, stumble: true },
+  { word: 0, dwell: 280 },
+  { word: 1, dwell: 260 },
+  { word: 2, dwell: 340 },
+  { word: 3, dwell: 300 },
+  { word: 4, dwell: 380, stumble: true },
+  // frequent regressions (looking back) + long hesitant dwells
+  { word: 2, dwell: 520, stumble: true }, // regression
+  { word: 3, dwell: 320 },
+  { word: 4, dwell: 480, stumble: true }, // regression
+  { word: 5, dwell: 560, stumble: true },
+  { word: 3, dwell: 340 },                 // regression
+  { word: 5, dwell: 620, stumble: true },
+  { word: 6, dwell: 300 },
+  { word: 7, dwell: 420, stumble: true },
+  { word: 6, dwell: 380, stumble: true },  // regression
   { word: 8, dwell: 300 },
-  { word: 9, dwell: 480, stumble: true },
-  { word: 10, dwell: 290 },
-  { word: 11, dwell: 260 },
-  { word: 12, dwell: 270 },
-  { word: 13, dwell: 240 },
-  { word: 14, dwell: 260 },
+  { word: 9, dwell: 520, stumble: true },
+  { word: 8, dwell: 340 },                 // regression
+  { word: 9, dwell: 600, stumble: true },
+  { word: 10, dwell: 300 },
+  { word: 11, dwell: 280 },
+  { word: 12, dwell: 300 },
+  { word: 13, dwell: 260 },
+  { word: 14, dwell: 280 },
 ];
 
 export function createDemoTracker(): GazeTracker {
@@ -458,24 +465,20 @@ export function createDemoTracker(): GazeTracker {
     if (!running) return;
     const step = DEMO_SCRIPT[scriptIdx % DEMO_SCRIPT.length];
     scriptIdx++;
-    // Loop through the script once, then idle on the last word.
     const idx = step.word;
     const box = wordBoxes[idx];
     if (box) {
       const s = sampleAtWordIdx(idx);
       if (s) {
         lastSample = s;
+        // processSample already emits a single (long) fixation + saccade +
+        // regression events for this dwell. We only add the extra
+        // "long_fixation" marker (drives hesitation/flagging) when the dwell
+        // crosses the threshold — no duplicate plain fixation here.
         processSample(s);
-        // emit a long-fixation if dwell exceeds threshold
         if (step.dwell >= GAZE_CONFIG.LONG_FIXATION_MS) {
           pendingEvents.push({
             type: "long_fixation",
-            wordIndex: idx,
-            word: box.word,
-            durationMs: step.dwell,
-          });
-          pendingEvents.push({
-            type: "fixation",
             wordIndex: idx,
             word: box.word,
             durationMs: step.dwell,
