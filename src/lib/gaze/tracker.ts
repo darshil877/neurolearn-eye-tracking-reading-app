@@ -52,19 +52,32 @@ export interface GazeTracker {
 const FACE_MESH_MODEL =
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
+const MEDIAPIPE_VERSION = "1.0.1";
+const MEDIAPIPE_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
+
 async function loadFaceLandmarker(): Promise<any> {
   const vision = await import("@mediapipe/tasks-vision");
   const { FaceLandmarker, FilesetResolver } = vision as any;
-  const filesetResolver = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
-  );
-  return FaceLandmarker.createFromOptions(filesetResolver, {
-    baseOptions: { modelAssetPath: FACE_MESH_MODEL, delegate: "GPU" },
-    runningMode: "VIDEO",
-    numFaces: 1,
-    outputFaceBlendshapes: false,
-    outputFacialTransformationMatrixes: false,
-  });
+  const filesetResolver = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM);
+  // Try GPU delegate first, then fall back to WASM/CPU which is more
+  // compatible across devices and webviews.
+  const delegates = ["GPU", "CPU"] as const;
+  let lastErr: unknown;
+  for (const delegate of delegates) {
+    try {
+      return await FaceLandmarker.createFromOptions(filesetResolver, {
+        baseOptions: { modelAssetPath: FACE_MESH_MODEL, delegate },
+        runningMode: "VIDEO",
+        numFaces: 1,
+        outputFaceBlendshapes: false,
+        outputFacialTransformationMatrixes: false,
+      });
+    } catch (e) {
+      lastErr = e;
+      console.warn(`FaceLandmarker ${delegate} delegate failed, trying next`, e);
+    }
+  }
+  throw lastErr;
 }
 
 // Helper to map iris center -> normalized screen x/y.
@@ -178,27 +191,10 @@ export function createLiveTracker(): GazeTracker {
     };
   }
 
-  function onFrame() {
-    if (!videoEl || !faceLandmarker || statusV !== "running") return;
-    const now = performance.now();
-    if (videoEl.currentTime !== lastVideoTime) {
-      lastVideoTime = videoEl.currentTime;
-      try {
-        const res = faceLandmarker.detectForVideo(videoEl, now);
-        const landmarks = res.faceLandmarks?.[0];
-        const raw = computeGaze(landmarks, videoEl);
-        if (raw) {
-          const smoothed = smoothSample(raw);
-          processSample(smoothed);
-        }
-      } catch (e) {
-        console.warn("FaceMesh frame error", e);
-      }
-    }
-    rafId = requestAnimationFrame(onFrame);
-  }
+  let latestSample: GazeSample | null = null;
 
   function processSample(s: GazeSample) {
+    latestSample = s;
     if (wordBoxes.length === 0) return;
     const hit = hitTestWord(wordBoxes, s);
     if (hit === null) {
@@ -256,15 +252,7 @@ export function createLiveTracker(): GazeTracker {
     currentWordStart = s.t;
   }
 
-  let latestSample: GazeSample | null = null;
-  // Wrap processSample so we also stash latest for the UI cursor
-  const origProcess = processSample;
-  function processAndStore(s: GazeSample) {
-    latestSample = s;
-    origProcess(s);
-  }
-  // (replace binding)
-  function onFrame2() {
+  function onFrame() {
     if (!videoEl || !faceLandmarker || statusV !== "running") return;
     const now = performance.now();
     if (videoEl.currentTime !== lastVideoTime) {
@@ -275,13 +263,13 @@ export function createLiveTracker(): GazeTracker {
         const raw = computeGaze(landmarks, videoEl);
         if (raw) {
           const smoothed = smoothSample(raw);
-          processAndStore(smoothed);
+          processSample(smoothed);
         }
       } catch (e) {
         console.warn("FaceMesh frame error", e);
       }
     }
-    rafId = requestAnimationFrame(onFrame2);
+    rafId = requestAnimationFrame(onFrame);
   }
 
   return {
@@ -304,7 +292,7 @@ export function createLiveTracker(): GazeTracker {
         lastAdvancement = 0;
         totalSaccades = 0;
         totalRegressions = 0;
-        rafId = requestAnimationFrame(onFrame2);
+        rafId = requestAnimationFrame(onFrame);
       } catch (e) {
         statusV = "error";
         console.error("Tracker start failed", e);

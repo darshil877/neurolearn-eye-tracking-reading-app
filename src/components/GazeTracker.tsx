@@ -61,7 +61,22 @@ export function GazeTracker({ running, onWordBoxesChange, onInfoClick }: GazeTra
       t.start(videoRef.current!)
         .then(() => setStarted(true))
         .catch((e) => {
-          setError(DEMO_MODE ? null : (e?.message || "Could not start camera"));
+          const msg = e?.message || "Could not start camera";
+          // If the live camera fails (no permission, bad device, GPU issues),
+          // gracefully fall back to the simulated tracker so the reading
+          // session can still continue instead of getting stuck.
+          if (!DEMO_MODE) {
+            console.warn("Live camera failed, falling back to simulated tracker:", e);
+            trackerRef.current?.stop();
+            trackerRef.current = createDemoTracker();
+            trackerRef.current.setWordBoxes(lastBoxes.current);
+            trackerRef.current
+              .start(videoRef.current!)
+              .then(() => setStarted(true))
+              .catch(() => setError(msg));
+          } else {
+            setError(msg);
+          }
         });
     }
     if (!running && started) {

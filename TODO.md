@@ -6,3 +6,10 @@ Steps:
 - [x] 3. db.ts: add English sample story
 - [x] 4. TeacherDashboard.tsx: add English option in Add Student modal
 - [x] 5. Landing.tsx: update marketing copy to include English
+
+Camera/tracker fixes:
+- [x] Fix MediaPipe WASM version mismatch (0.10.22 → 1.0.1)
+- [x] Add GPU → CPU delegate fallback for FaceLandmarker
+- [x] Collapse duplicate frameloop (onFrame/onFrame2, processSample/processAndStore)
+- [x] Graceful demo-tracker fallback when live camera fails
+- [x] Verify build compiles
