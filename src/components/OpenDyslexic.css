@@ -1,0 +1,73 @@
+/* OpenDyslexic bundled as a web font via CDN (works in the single-file demo).
+   In production, self-host these font files in /public/fonts. */
+@import url("https://fonts.cdnfonts.com/css/opendyslexic");
+
+.font-opendyslexic {
+  font-family: "OpenDyslexic", "OpenDyslexic-Regular", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.adapt-level-1 {
+  font-family: "OpenDyslexic", "OpenDyslexic-Regular", system-ui, sans-serif;
+}
+.adapt-level-2 {
+  font-family: "OpenDyslexic", "OpenDyslexic-Regular", system-ui, sans-serif;
+  line-height: 2.2;
+  letter-spacing: 0.08em;
+  word-spacing: 0.15em;
+}
+.adapt-level-3 {
+  font-family: "OpenDyslexic", "OpenDyslexic-Regular", system-ui, sans-serif;
+  line-height: 2.6;
+  letter-spacing: 0.14em;
+  word-spacing: 0.25em;
+  font-size: 1.12em;
+}
+.adapt-level-4 {
+  font-family: "OpenDyslexic", "OpenDyslexic-Regular", system-ui, sans-serif;
+  line-height: 3;
+  letter-spacing: 0.2em;
+  word-spacing: 0.35em;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+
+/* The warm-tint overlay that ramps up with adaptation level */
+.warm-tint {
+  position: relative;
+}
+.warm-tint::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 228, 181, 0.0) 0%, rgba(255, 210, 140, 0.22) 100%);
+  mix-blend-mode: multiply;
+  transition: opacity 400ms ease;
+  opacity: 0;
+  z-index: 0;
+}
+.warm-tint.tint-2::after { opacity: 0.4; }
+.warm-tint.tint-3::after { opacity: 0.7; }
+.warm-tint.tint-4::after { opacity: 1; }
+
+.reading-word {
+  position: relative;
+  display: inline-block;
+  padding: 0.05em 0.08em;
+  margin: 0.02em 0.03em;
+  border-radius: 6px;
+  transition: background 200ms ease, color 200ms ease;
+  z-index: 1;
+}
+.reading-word.is-current {
+  background: linear-gradient(180deg, rgba(253, 224, 71, 0.55), rgba(251, 191, 36, 0.55));
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.45);
+}
+.reading-word.is-struggled {
+  background: linear-gradient(180deg, rgba(252, 165, 165, 0.35), rgba(248, 113, 113, 0.35));
+}
+.reading-word.visited {
+  color: inherit;
+}
